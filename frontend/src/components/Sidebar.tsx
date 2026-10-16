@@ -51,7 +51,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <>
       {mobileOpen && <div className="sidebar-backdrop" onClick={onCloseMobile} />}
       <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
-        <div className="sidebar-header">
+        <div
+          className="sidebar-header"
+          onClick={() => handleNav('overview')}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleNav('overview');
+            }
+          }}
+          title="Go to Home Overview"
+          style={{ cursor: 'pointer' }}
+        >
           <div className="brand-icon-wrap">
             <HeartPulse size={20} strokeWidth={2.2} />
           </div>

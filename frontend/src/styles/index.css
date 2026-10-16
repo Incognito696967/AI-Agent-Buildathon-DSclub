@@ -91,6 +91,18 @@ button, input, select, textarea {
   padding: 0 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-header:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-header:hover .brand-icon-wrap {
+  transform: scale(1.06);
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.55);
 }
 
 .brand-icon-wrap {
@@ -103,6 +115,7 @@ button, input, select, textarea {
   justify-content: center;
   box-shadow: 0 2px 8px rgba(13, 148, 136, 0.35);
   color: #FFFFFF;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .brand-info {
