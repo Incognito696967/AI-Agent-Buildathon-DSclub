@@ -108,24 +108,21 @@ def _generate_candidate_slots(
 
 def _call_gemini(symptoms_text: str) -> dict:
     """Send the symptoms text to Gemini and parse structured JSON back."""
-    try:
-        import google.generativeai as genai  # type: ignore
-    except ImportError:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=(
-                "google-generativeai package is not installed. "
-                "Run: pip install google-generativeai"
-            ),
-        )
-
+    # Ensure the Gemini API key is set before importing the client library.
     api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     if not api_key:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="GEMINI_API_KEY environment variable is not set in backend/.env",
         )
-
+    # Now import the Google Generative AI client.
+    try:
+        import google.generativeai as genai  # type: ignore
+    except ImportError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="google-generativeai package is not installed. Run: pip install google-generativeai",
+        )
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel("gemini-2.0-flash")
 
