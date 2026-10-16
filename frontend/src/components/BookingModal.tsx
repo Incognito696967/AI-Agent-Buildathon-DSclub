@@ -8,7 +8,6 @@ import {
   ChevronLeft,
   ShieldAlert,
   Sparkles,
-  Bot,
 } from 'lucide-react';
 import type {
   AppointmentCreateInput,
