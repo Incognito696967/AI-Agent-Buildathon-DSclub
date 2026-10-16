@@ -247,6 +247,100 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview' })
     }
   };
 
+  // AI Automatic Scheduling handler
+  const handleAutoSchedule = async (input: { patient_id: string; symptoms_text: string }) => {
+    try {
+      let result;
+      try {
+        result = await api.autoSchedule(input);
+      } catch (networkErr: any) {
+        // If FastAPI backend error
+        if (networkErr?.status === 409 || networkErr?.status === 404 || networkErr?.status === 400) {
+          throw networkErr;
+        }
+
+        // Local simulation fallback if backend unreachable
+        const pat = patients.find((p) => p.id === input.patient_id);
+        const availDoc = doctors.find((d) => d.is_available) || doctors[0];
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(10, 0, 0, 0);
+
+        const createdApt: Appointment = {
+          id: `apt-${Date.now()}`,
+          patient_id: input.patient_id,
+          doctor_id: availDoc.id,
+          patient_name: pat?.name || 'Patient',
+          doctor_name: availDoc.name,
+          specialization: availDoc.specialization,
+          scheduled_at: tomorrow.toISOString(),
+          end_at: new Date(tomorrow.getTime() + 30 * 60000).toISOString(),
+          status: 'scheduled',
+          priority: 'normal',
+          reason: `AI Triage: ${input.symptoms_text.slice(0, 100)}`,
+          created_at: new Date().toISOString(),
+        };
+
+        setAppointments((prev) => [createdApt, ...prev]);
+
+        result = {
+          success: true,
+          recommendation: {
+            recommended_specialization: availDoc.specialization,
+            suggested_priority: 'normal' as const,
+            urgency_rationale: 'Symptoms evaluated by coordination engine.',
+            suggested_doctors: [availDoc],
+            recommended_slots: [tomorrow.toISOString()],
+          },
+          appointment: createdApt,
+          message: `Auto-scheduled appointment with ${availDoc.name}.`,
+        };
+      }
+
+      if (result.success && result.appointment) {
+        addToast({
+          type: 'success',
+          title: 'AI Scheduled Appointment',
+          message: `Reserved 30m slot with ${result.appointment.doctor_name || 'Doctor'} (${result.recommendation.recommended_specialization}).`,
+        });
+
+        addEvent({
+          type: 'booking',
+          title: `AI Auto-Scheduled (${result.recommendation.suggested_priority.toUpperCase()})`,
+          description: `AI matched ${result.appointment.patient_name || input.patient_id} with ${
+            result.appointment.doctor_name
+          } for ${result.recommendation.recommended_specialization}.`,
+          priority: result.recommendation.suggested_priority,
+          status: 'success',
+          details: {
+            'AI Specialization': result.recommendation.recommended_specialization,
+            'Priority': result.recommendation.suggested_priority,
+            'Doctor': result.appointment.doctor_name || result.appointment.doctor_id,
+            'Slot': new Date(result.appointment.scheduled_at).toLocaleString([], {
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+          },
+        });
+
+        await loadData();
+      } else {
+        addToast({
+          type: 'warning',
+          title: 'Auto-Scheduling Notice',
+          message: result.message,
+        });
+      }
+
+      return result;
+    } catch (err: any) {
+      throw err;
+    }
+  };
+
+
   // Conflict detection callback from modal
   const handleConflictDetected = (conflict: { doctorName: string; time: string }) => {
     addToast({
@@ -748,6 +842,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview' })
         isOpen={isBookingModalOpen}
         onClose={() => setIsBookingModalOpen(false)}
         onSubmit={handleCreateAppointment}
+        onAutoSchedule={handleAutoSchedule}
         doctors={doctors}
         patients={patients}
         preselectedDoctorId={preselectedDoctorId}

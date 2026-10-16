@@ -8,7 +8,12 @@ from fastapi import APIRouter, Depends
 from supabase import Client
 
 from app.db.supabase_client import get_supabase_client
-from app.schemas.triage import TriageRecommendation, TriageRequest
+from app.schemas.triage import (
+    TriageRecommendation,
+    TriageRequest,
+    AutoScheduleRequest,
+    AutoScheduleResponse,
+)
 from app.services import ai_triage_service
 
 router = APIRouter(prefix="/ai", tags=["AI Coordination"])
@@ -48,3 +53,22 @@ def recommend_slots(
 ) -> TriageRecommendation:
     """Slot recommendation endpoint (mirrors /triage per integration contract)."""
     return ai_triage_service.recommend_slots(client=client, request=payload)
+
+
+@router.post(
+    "/auto-schedule",
+    response_model=AutoScheduleResponse,
+    summary="AI-powered automatic doctor appointment scheduling",
+    description=(
+        "Performs end-to-end intelligent scheduling: interprets patient symptoms, "
+        "identifies medical specialization, matches eligible available doctors, "
+        "evaluates 30-minute conflict-free slots, and atomically confirms the appointment in Supabase."
+    ),
+)
+def auto_schedule(
+    payload: AutoScheduleRequest,
+    client: Client = Depends(get_supabase_client),
+) -> AutoScheduleResponse:
+    """Full automatic scheduling pipeline."""
+    return ai_triage_service.auto_schedule(client=client, request=payload)
+

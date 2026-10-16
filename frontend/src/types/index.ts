@@ -93,3 +93,26 @@ export interface ToastMessage {
   message: string;
   title?: string;
 }
+
+export interface TriageRecommendation {
+  recommended_specialization: string;
+  suggested_priority: AppointmentPriority;
+  urgency_rationale: string;
+  suggested_doctors: Doctor[];
+  recommended_slots: string[];
+}
+
+export interface AutoScheduleInput {
+  patient_id: string;
+  symptoms_text: string;
+  preferred_doctor_id?: string;
+  preferred_date?: string;
+}
+
+export interface AutoScheduleResult {
+  success: boolean;
+  recommendation: TriageRecommendation;
+  appointment?: Appointment | null;
+  message: string;
+}
+

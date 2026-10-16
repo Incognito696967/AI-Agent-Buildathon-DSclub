@@ -7,18 +7,24 @@ import {
   ChevronRight,
   ChevronLeft,
   ShieldAlert,
+  Sparkles,
+  Bot,
 } from 'lucide-react';
 import type {
   AppointmentCreateInput,
   AppointmentPriority,
   Doctor,
   Patient,
+  AutoScheduleResult,
 } from '../types';
+import { api } from '../api/client';
+
 
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (input: AppointmentCreateInput) => Promise<void>;
+  onAutoSchedule?: (input: { patient_id: string; symptoms_text: string }) => Promise<AutoScheduleResult>;
   doctors: Doctor[];
   patients: Patient[];
   preselectedDoctorId?: string;
@@ -30,6 +36,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  onAutoSchedule,
   doctors,
   patients,
   preselectedDoctorId,
@@ -37,6 +44,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   onConflictDetected,
 }) => {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [bookingMode, setBookingMode] = useState<'standard' | 'ai'>('standard');
+  const [autoSymptoms, setAutoSymptoms] = useState('');
+  const [isAutoScheduling, setIsAutoScheduling] = useState(false);
+  const [autoScheduleResult, setAutoScheduleResult] = useState<AutoScheduleResult | null>(null);
 
   const [patientId, setPatientId] = useState('');
   const [doctorId, setDoctorId] = useState('');
@@ -49,6 +60,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [conflictError, setConflictError] = useState<string | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Default date to tomorrow
   useEffect(() => {
@@ -64,11 +76,17 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       if (preselectedPatientId) setPatientId(preselectedPatientId);
 
       setStep(1);
+      setBookingMode('standard');
+      setAutoSymptoms('');
+      setIsAutoScheduling(false);
+      setAutoScheduleResult(null);
       setGeneralError(null);
       setConflictError(null);
       setBookingSuccess(false);
+      setSuccessMessage(null);
     }
   }, [isOpen, preselectedDoctorId, preselectedPatientId]);
+
 
   if (!isOpen) return null;
 
@@ -154,6 +172,76 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     }
   };
 
+  const handleTriggerAutoSchedule = async () => {
+    if (!patientId) {
+      setGeneralError('Please select a patient first.');
+      return;
+    }
+    if (!autoSymptoms.trim()) {
+      setGeneralError('Please describe the patient symptoms for the AI triage engine.');
+      return;
+    }
+
+    setIsAutoScheduling(true);
+    setGeneralError(null);
+    setConflictError(null);
+    setAutoScheduleResult(null);
+
+    try {
+      if (onAutoSchedule) {
+        const result = await onAutoSchedule({
+          patient_id: patientId,
+          symptoms_text: autoSymptoms.trim(),
+        });
+        setAutoScheduleResult(result);
+        if (result.success && result.appointment) {
+          setBookingSuccess(true);
+          setSuccessMessage(
+            `AI scheduled 30m slot with ${result.appointment.doctor_name} (${result.recommendation.recommended_specialization}) on ${new Date(
+              result.appointment.scheduled_at
+            ).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}`
+          );
+          setTimeout(() => {
+            onClose();
+          }, 2400);
+        } else {
+          setGeneralError(result.message || 'AI auto-scheduling could not secure a slot.');
+        }
+      } else {
+        // Direct api call fallback
+        const result = await api.autoSchedule({
+          patient_id: patientId,
+          symptoms_text: autoSymptoms.trim(),
+        });
+        setAutoScheduleResult(result);
+        if (result.success && result.appointment) {
+          setBookingSuccess(true);
+          setSuccessMessage(
+            `AI scheduled 30m slot with ${result.appointment.doctor_name} (${result.recommendation.recommended_specialization}) on ${new Date(
+              result.appointment.scheduled_at
+            ).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}`
+          );
+          setTimeout(() => {
+            onClose();
+          }, 2400);
+        } else {
+          setGeneralError(result.message || 'AI auto-scheduling could not secure a slot.');
+        }
+      }
+    } catch (err: any) {
+      if (err.status === 409 || err.message?.toLowerCase().includes('conflict')) {
+        setConflictError(
+          err.message || 'Scheduling Conflict: Doctor already booked during this time interval.'
+        );
+      } else {
+        setGeneralError(err.message || 'Failed to auto-schedule consultation.');
+      }
+    } finally {
+      setIsAutoScheduling(false);
+    }
+  };
+
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
@@ -213,7 +301,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 Appointment Coordinated!
               </h4>
               <p style={{ fontSize: '0.86rem', color: '#64748B' }}>
-                Slot locked and committed to Supabase PostgreSQL database.
+                {successMessage || 'Slot locked and committed to Supabase PostgreSQL database.'}
               </p>
             </div>
           )}
@@ -244,8 +332,157 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
           {!bookingSuccess && (
             <>
-              {/* Step 1: Patient Selection */}
-              {step === 1 && (
+              {/* Mode Toggle Banner */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '0.5rem',
+                  padding: '0.35rem',
+                  background: '#F1F5F9',
+                  borderRadius: '8px',
+                  marginBottom: '1.25rem',
+                }}
+              >
+                <button
+                  type="button"
+                  style={{
+                    flex: 1,
+                    padding: '0.45rem',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: bookingMode === 'standard' ? '#FFFFFF' : 'transparent',
+                    color: bookingMode === 'standard' ? '#142D4E' : '#64748B',
+                    boxShadow: bookingMode === 'standard' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.35rem',
+                  }}
+                  onClick={() => setBookingMode('standard')}
+                >
+                  <span>Manual 5-Step Scheduling</span>
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    flex: 1,
+                    padding: '0.45rem',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: bookingMode === 'ai' ? '#0D9488' : 'transparent',
+                    color: bookingMode === 'ai' ? '#FFFFFF' : '#0D9488',
+                    boxShadow: bookingMode === 'ai' ? '0 1px 3px rgba(13,148,136,0.3)' : 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.35rem',
+                  }}
+                  onClick={() => setBookingMode('ai')}
+                >
+                  <Sparkles size={14} />
+                  <span>AI Automatic Scheduling</span>
+                </button>
+              </div>
+
+              {/* AI Auto-Schedule Form */}
+              {bookingMode === 'ai' && (
+                <div>
+                  <div className="form-group">
+                    <label>
+                      Select Patient <span className="required">*</span>
+                    </label>
+                    <select
+                      className="form-control"
+                      value={patientId}
+                      onChange={(e) => setPatientId(e.target.value)}
+                    >
+                      <option value="">-- Choose Registered Patient --</option>
+                      {patients.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({p.age} yrs) {p.contact ? `• ${p.contact}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group" style={{ marginTop: '1rem' }}>
+                    <label>
+                      Patient Symptoms & Clinical Needs <span className="required">*</span>
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows={4}
+                      placeholder="Describe symptoms in natural language (e.g., 'Experiencing sharp chest tightness radiating to left arm and shortness of breath' or 'Severe knee swelling after sports injury')..."
+                      value={autoSymptoms}
+                      onChange={(e) => setAutoSymptoms(e.target.value)}
+                      disabled={isAutoScheduling}
+                    />
+                    <div className="form-help">
+                      Google Gemini AI analyzes clinical symptoms, determines urgency (urgent/high/normal), identifies the right specialist, and reserves the earliest conflict-free 30m slot in Supabase.
+                    </div>
+                  </div>
+
+                  {autoScheduleResult && (
+                    <div className="review-box" style={{ marginTop: '1rem', background: '#F8FAFC' }}>
+                      <div className="review-item">
+                        <span className="review-label">Specialization</span>
+                        <span className="review-value" style={{ fontWeight: 600, color: '#0D9488' }}>
+                          {autoScheduleResult.recommendation.recommended_specialization}
+                        </span>
+                      </div>
+                      <div className="review-item">
+                        <span className="review-label">Urgency Priority</span>
+                        <span className="review-value">
+                          <span className={`badge-priority ${autoScheduleResult.recommendation.suggested_priority}`}>
+                            {autoScheduleResult.recommendation.suggested_priority.toUpperCase()}
+                          </span>
+                        </span>
+                      </div>
+                      <div className="review-item">
+                        <span className="review-label">Clinical Rationale</span>
+                        <span className="review-value" style={{ fontSize: '0.8rem', color: '#475569' }}>
+                          {autoScheduleResult.recommendation.urgency_rationale}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end', gap: '0.65rem' }}>
+                    <button
+                      type="button"
+                      className="btn btn-outline btn-sm"
+                      onClick={onClose}
+                      disabled={isAutoScheduling}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={handleTriggerAutoSchedule}
+                      disabled={isAutoScheduling || !patientId || !autoSymptoms.trim()}
+                      style={{
+                        background: 'linear-gradient(135deg, #0D9488 0%, #0F766E 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.35rem',
+                      }}
+                    >
+                      <Sparkles size={14} />
+                      <span>{isAutoScheduling ? 'AI Analyzing & Booking...' : 'Auto-Schedule Appointment'}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 1: Patient Selection (Standard Mode) */}
+              {bookingMode === 'standard' && step === 1 && (
                 <div>
                   <div className="form-group">
                     <label>
@@ -286,6 +523,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   )}
                 </div>
               )}
+
 
               {/* Step 2: Doctor Selection */}
               {step === 2 && (
@@ -514,8 +752,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         </div>
 
         {/* Modal Footer Controls */}
-        {!bookingSuccess && (
+        {!bookingSuccess && bookingMode === 'standard' && (
           <div className="modal-footer">
+
             <div>
               {step > 1 && (
                 <button

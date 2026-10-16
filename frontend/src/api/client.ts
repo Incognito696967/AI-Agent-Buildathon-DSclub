@@ -5,6 +5,9 @@ import type {
   Patient,
   HealthResponse,
   DbHealthResponse,
+  TriageRecommendation,
+  AutoScheduleInput,
+  AutoScheduleResult,
 } from '../types';
 
 const API_BASE_URL =
@@ -89,7 +92,24 @@ export const api = {
       method: 'PATCH',
     }),
 
-  // AI Coordination & Triage
+  // AI Coordination & Automatic Scheduling
+  triageSymptoms: (patient_id: string, symptoms_text: string) =>
+    request<TriageRecommendation>('/ai/triage', {
+      method: 'POST',
+      body: JSON.stringify({ patient_id, symptoms_text }),
+    }),
+  getRecommendedSlots: (patient_id: string, symptoms_text: string) =>
+    request<TriageRecommendation>('/ai/recommend-slots', {
+      method: 'POST',
+      body: JSON.stringify({ patient_id, symptoms_text }),
+    }),
+  autoSchedule: (data: AutoScheduleInput) =>
+    request<AutoScheduleResult>('/ai/auto-schedule', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  // AI Scheduling Copilot Helpers
   aiTriage: (symptomsText: string) =>
     request<{
       recommended_specialization: string;

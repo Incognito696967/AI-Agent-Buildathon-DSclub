@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status

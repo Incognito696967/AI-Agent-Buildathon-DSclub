@@ -8,6 +8,7 @@ from app.schemas.appointment import (
     AppointmentResponse,
     AppointmentCancelResponse,
 )
+from app.schemas.triage import AutoScheduleRequest, AutoScheduleResponse
 from app.services import appointment_service
 
 router = APIRouter(prefix="/appointments", tags=["Appointments"])
@@ -46,6 +47,23 @@ def create_appointment(
     Validates patient existence, doctor availability, and prevents conflicting doctor bookings.
     """
     return appointment_service.create_appointment(client=client, data=payload)
+
+
+@router.post(
+    "/auto-schedule",
+    response_model=AutoScheduleResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="AI-powered automatic doctor appointment scheduling",
+    description="Analyzes patient requirements using AI, matches specialist, and reserves the optimal slot.",
+)
+def auto_schedule_appointment(
+    payload: AutoScheduleRequest,
+    client: Client = Depends(get_supabase_client),
+):
+    """Automatic AI appointment scheduling endpoint under /appointments."""
+    from app.services import ai_triage_service
+    return ai_triage_service.auto_schedule(client=client, request=payload)
+
 
 
 @router.patch(

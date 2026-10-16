@@ -10,6 +10,13 @@ from app.schemas.appointment import (
     AppointmentPriority,
 )
 
+from app.schemas.triage import (
+    TriageRequest,
+    TriageRecommendation,
+    AutoScheduleRequest,
+    AutoScheduleResponse,
+)
+
 __all__ = [
     "PatientBase",
     "PatientCreate",
@@ -24,4 +31,9 @@ __all__ = [
     "AppointmentCancelResponse",
     "AppointmentStatus",
     "AppointmentPriority",
+    "TriageRequest",
+    "TriageRecommendation",
+    "AutoScheduleRequest",
+    "AutoScheduleResponse",
 ]
+
