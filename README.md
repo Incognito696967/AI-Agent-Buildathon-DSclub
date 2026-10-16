@@ -46,7 +46,8 @@ Before running the application, ensure you have:
 ## 4. Supabase Setup & Database Migration
 
 ### Step 1: Obtain Credentials from Supabase
-1. Log in to your [Supabase Dashboard](https://supabase.com/dashboard).
+1. Log in to your [Supaba
+se Dashboard](https://supabase.com/dashboard).
 2. Select your project (or create a new one).
 3. Navigate to **Project Settings** -> **API**.
 4. Note your **Project URL** (`https://<project-ref>.supabase.co`).

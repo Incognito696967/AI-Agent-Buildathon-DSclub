@@ -237,3 +237,84 @@ Cancel an appointment (preserves record, marks `status = 'cancelled'`).
 
 **Errors:**
 - `404 Not Found`: Appointment ID does not exist.
+
+---
+
+## 5. AI Coordination & Auto-Scheduling API
+
+### `POST /ai/triage`
+Analyze natural language patient symptoms and output structured triage recommendation.
+
+**Request Body:**
+```json
+{
+  "patient_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "symptoms_text": "Severe chest pressure radiating to left arm and shortness of breath."
+}
+```
+
+**Response `200 OK`:**
+```json
+{
+  "recommended_specialization": "Cardiology",
+  "suggested_priority": "urgent",
+  "urgency_rationale": "Chest pressure radiating to arm may indicate acute cardiac syndrome.",
+  "suggested_doctors": [
+    {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "name": "Dr. Sarah Connor",
+      "specialization": "Cardiology",
+      "is_available": true,
+      "created_at": "2026-10-16T12:00:00Z"
+    }
+  ],
+  "recommended_slots": [
+    "2026-10-20T09:00:00Z",
+    "2026-10-20T09:30:00Z",
+    "2026-10-20T10:00:00Z"
+  ]
+}
+```
+
+---
+
+### `POST /ai/auto-schedule` (also available via `POST /appointments/auto-schedule`)
+Automates the full workflow: AI interprets symptoms, selects appropriate available specialist, finds conflict-free 30-minute slot, and atomically commits the appointment into Supabase PostgreSQL.
+
+**Request Body:**
+```json
+{
+  "patient_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "symptoms_text": "Crushing chest pain radiating to my shoulder."
+}
+```
+
+**Response `200 OK` (or `201 Created` via `/appointments/auto-schedule`):**
+```json
+{
+  "success": true,
+  "recommendation": {
+    "recommended_specialization": "Cardiology",
+    "suggested_priority": "urgent",
+    "urgency_rationale": "Acute cardiac concern.",
+    "suggested_doctors": [...],
+    "recommended_slots": [...]
+  },
+  "appointment": {
+    "id": "77777777-7777-7777-7777-777777777777",
+    "patient_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "doctor_id": "11111111-1111-1111-1111-111111111111",
+    "scheduled_at": "2026-10-20T09:00:00Z",
+    "end_at": "2026-10-20T09:30:00Z",
+    "status": "scheduled",
+    "priority": "urgent",
+    "reason": "AI Triage (Cardiology): Crushing chest pain...",
+    "patient_name": "John Doe",
+    "doctor_name": "Dr. Sarah Connor",
+    "specialization": "Cardiology",
+    "created_at": "2026-10-16T12:10:00Z"
+  },
+  "message": "Successfully auto-scheduled 30m appointment with Dr. Sarah Connor for 2026-10-20T09:00:00Z."
+}
+```
+

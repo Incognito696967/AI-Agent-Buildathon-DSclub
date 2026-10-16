@@ -19,8 +19,15 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     API_V1_PREFIX: str = "/api/v1"
 
+    # AI Coordination & Triage settings
+    GEMINI_API_KEY: Optional[str] = None
+    GOOGLE_API_KEY: Optional[str] = None
+    AI_MODEL: str = "gemini-2.0-flash"
+    AI_ENABLED: bool = True
+
     # CORS settings
     CORS_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173"
+
 
     model_config = SettingsConfigDict(
         env_file=(".env", "backend/.env"),

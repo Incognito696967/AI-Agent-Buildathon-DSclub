@@ -5,7 +5,11 @@ import type {
   Patient,
   HealthResponse,
   DbHealthResponse,
+  TriageRecommendation,
+  AutoScheduleInput,
+  AutoScheduleResult,
 } from '../types';
+
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
@@ -88,4 +92,22 @@ export const api = {
     request<{ id: string; status: string; message: string }>(`/appointments/${id}/cancel`, {
       method: 'PATCH',
     }),
+
+  // AI Coordination & Automatic Scheduling
+  triageSymptoms: (patient_id: string, symptoms_text: string) =>
+    request<TriageRecommendation>('/ai/triage', {
+      method: 'POST',
+      body: JSON.stringify({ patient_id, symptoms_text }),
+    }),
+  getRecommendedSlots: (patient_id: string, symptoms_text: string) =>
+    request<TriageRecommendation>('/ai/recommend-slots', {
+      method: 'POST',
+      body: JSON.stringify({ patient_id, symptoms_text }),
+    }),
+  autoSchedule: (data: AutoScheduleInput) =>
+    request<AutoScheduleResult>('/ai/auto-schedule', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };
+
