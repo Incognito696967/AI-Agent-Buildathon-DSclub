@@ -179,6 +179,70 @@ export const DoctorsView: React.FC<DoctorsViewProps> = ({
                     <span>{activeCount} scheduled slot(s)</span>
                   </div>
                 </div>
+
+                {/* Appointments List for this Physician */}
+                <div style={{ marginTop: '0.75rem', paddingTop: '0.65rem', borderTop: '1px solid #EDF2F7' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569', marginBottom: '0.45rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <Calendar size={13} color="#0D9488" />
+                      <span>Consultation Schedule ({docApts.length})</span>
+                    </div>
+                    {activeCount > 0 && (
+                      <span style={{ fontSize: '0.68rem', color: '#0D9488', fontWeight: 600 }}>
+                        {activeCount} Active
+                      </span>
+                    )}
+                  </div>
+
+                  {docApts.length === 0 ? (
+                    <div style={{ fontSize: '0.74rem', color: '#94A3B8', fontStyle: 'italic', padding: '0.2rem 0' }}>
+                      No consultations scheduled for this physician
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      {docApts.map((apt) => {
+                        const aptDate = new Date(apt.scheduled_at).toLocaleDateString([], { month: 'short', day: 'numeric' });
+                        const aptTime = new Date(apt.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        return (
+                          <div
+                            key={apt.id}
+                            style={{
+                              padding: '0.45rem 0.6rem',
+                              borderRadius: '6px',
+                              background: apt.status === 'cancelled' ? '#F8FAFC' : '#F0FDF8',
+                              border: `1px solid ${apt.status === 'cancelled' ? '#E2E8F0' : '#CCFBF1'}`,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '0.2rem',
+                              fontSize: '0.76rem',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                              <span style={{ fontWeight: 600, color: '#142D4E' }}>
+                                {apt.patient_name || 'Patient Record'}
+                              </span>
+                              <span
+                                className={`priority-pill ${apt.priority || 'normal'}`}
+                                style={{ fontSize: '0.62rem', padding: '0.08rem 0.35rem' }}
+                              >
+                                {apt.status === 'cancelled' ? 'Cancelled' : apt.priority?.toUpperCase()}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#64748B', fontSize: '0.72rem' }}>
+                              <span>30m Slot</span>
+                              <span>{aptDate} at {aptTime}</span>
+                            </div>
+                            {apt.reason && (
+                              <div style={{ color: '#64748B', fontSize: '0.7rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                Notes: {apt.reason}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}
