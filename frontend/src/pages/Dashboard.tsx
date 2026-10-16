@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { TopNavbar } from '../components/TopNavbar';
 import { MetricCards } from '../components/MetricCards';
@@ -10,6 +11,12 @@ import { CoordinationActivityView } from '../components/CoordinationActivityView
 import { BookingModal } from '../components/BookingModal';
 import { ToastContainer } from '../components/ToastContainer';
 import { api } from '../api/client';
+import {
+  INITIAL_DOCTORS,
+  INITIAL_PATIENTS,
+  INITIAL_APPOINTMENTS,
+  INITIAL_EVENTS,
+} from '../mockData';
 import {
   Calendar,
   AlertTriangle,
@@ -30,39 +37,46 @@ import type {
   DoctorCreateInput,
 } from '../types';
 
-export const Dashboard: React.FC = () => {
+interface DashboardProps {
+  initialTab?: NavTab;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview' }) => {
+  const location = useLocation();
+
+  const getTabFromPath = useCallback((path: string): NavTab => {
+    if (path.startsWith('/appointments')) return 'appointments';
+    if (path.startsWith('/patients')) return 'patients';
+    if (path.startsWith('/doctors')) return 'doctors';
+    if (path.startsWith('/coordination')) return 'coordination';
+    return initialTab;
+  }, [initialTab]);
+
   // Navigation & UI state
-  const [currentTab, setCurrentTab] = useState<NavTab>('overview');
+  const [currentTab, setCurrentTab] = useState<NavTab>(() => getTabFromPath(location.pathname));
+
+  useEffect(() => {
+    setCurrentTab(getTabFromPath(location.pathname));
+  }, [location.pathname, getTabFromPath]);
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [preselectedDoctorId, setPreselectedDoctorId] = useState<string | undefined>();
   const [preselectedPatientId, setPreselectedPatientId] = useState<string | undefined>();
   const [priorityFilter, setPriorityFilter] = useState<'all' | 'urgent'>('all');
 
-  // Backend state
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [patients, setPatients] = useState<Patient[]>([]);
+  // Backend state initialized with demo data
+  const [appointments, setAppointments] = useState<Appointment[]>(INITIAL_APPOINTMENTS);
+  const [doctors, setDoctors] = useState<Doctor[]>(INITIAL_DOCTORS);
+  const [patients, setPatients] = useState<Patient[]>(INITIAL_PATIENTS);
   const [apiHealth, setApiHealth] = useState<HealthResponse | null>(null);
   const [dbHealth, setDbHealth] = useState<DbHealthResponse | null>(null);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
 
   // Operational trace & notifications
-  const [events, setEvents] = useState<CoordinationEvent[]>([
-    {
-      id: 'init-1',
-      timestamp: new Date().toISOString(),
-      type: 'system',
-      title: 'Coordination Engine Initialized',
-      description: 'Connected to MEDFLOW coordination gateway. GIST exclusion trigger active.',
-      details: {
-        'Engine': 'FastAPI + Supabase',
-        'Constraint': 'no_overlapping_doctor_appointments',
-      },
-    },
-  ]);
+  const [events, setEvents] = useState<CoordinationEvent[]>(INITIAL_EVENTS);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const addToast = (toast: Omit<ToastMessage, 'id'>) => {
@@ -122,19 +136,25 @@ export const Dashboard: React.FC = () => {
       });
     }
 
-    // 3. Fetch Data from FastAPI
+    // 3. Fetch Data from FastAPI (if available)
     try {
       const [fetchedAppointments, fetchedDoctors, fetchedPatients] = await Promise.all([
-        api.getAppointments().catch(() => []),
-        api.getDoctors().catch(() => []),
-        api.getPatients().catch(() => []),
+        api.getAppointments().catch(() => null),
+        api.getDoctors().catch(() => null),
+        api.getPatients().catch(() => null),
       ]);
 
-      setAppointments(fetchedAppointments);
-      setDoctors(fetchedDoctors);
-      setPatients(fetchedPatients);
-    } catch (err: any) {
-      setGlobalError(err.message || 'Failed communicating with coordination gateway.');
+      if (fetchedAppointments && fetchedAppointments.length > 0) {
+        setAppointments(fetchedAppointments);
+      }
+      if (fetchedDoctors && fetchedDoctors.length > 0) {
+        setDoctors(fetchedDoctors);
+      }
+      if (fetchedPatients && fetchedPatients.length > 0) {
+        setPatients(fetchedPatients);
+      }
+    } catch {
+      // Retain demo state if backend is offline
     } finally {
       setLoading(false);
     }
@@ -147,7 +167,54 @@ export const Dashboard: React.FC = () => {
   // Appointment creation handler
   const handleCreateAppointment = async (input: AppointmentCreateInput) => {
     try {
-      const created = await api.createAppointment(input);
+      let created: Appointment;
+      try {
+        created = await api.createAppointment(input);
+      } catch (networkErr: any) {
+        // If it's a conflict error (409) from FastAPI
+        if (networkErr?.status === 409) {
+          throw networkErr;
+        }
+
+        // Local coordination simulation
+        const doc = doctors.find((d) => d.id === input.doctor_id);
+        const pat = patients.find((p) => p.id === input.patient_id);
+        const inputStart = new Date(input.scheduled_at).getTime();
+        const inputEnd = inputStart + 30 * 60000;
+
+        // Check local slot overlap (GIST logic simulation)
+        const hasConflict = appointments.some((a) => {
+          if (a.doctor_id !== input.doctor_id || a.status !== 'scheduled') return false;
+          const aStart = new Date(a.scheduled_at).getTime();
+          const aEnd = new Date(a.end_at).getTime();
+          return inputStart < aEnd && inputEnd > aStart;
+        });
+
+        if (hasConflict) {
+          handleConflictDetected({
+            doctorName: doc?.name || 'Selected Doctor',
+            time: new Date(input.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          });
+          throw new Error('Doctor is already booked for an overlapping time slot.');
+        }
+
+        created = {
+          id: `apt-${Date.now()}`,
+          patient_id: input.patient_id,
+          doctor_id: input.doctor_id,
+          patient_name: pat?.name || 'Patient',
+          doctor_name: doc?.name || 'Doctor',
+          specialization: doc?.specialization || 'General',
+          scheduled_at: input.scheduled_at,
+          end_at: new Date(inputEnd).toISOString(),
+          status: 'scheduled',
+          priority: input.priority,
+          reason: input.reason || null,
+          created_at: new Date().toISOString(),
+        };
+        setAppointments((prev) => [created, ...prev]);
+      }
+
       addToast({
         type: 'success',
         title: 'Appointment Booked',
@@ -202,7 +269,15 @@ export const Dashboard: React.FC = () => {
   const handleCancelAppointment = async (id: string) => {
     const targetApt = appointments.find((a) => a.id === id);
     try {
-      await api.cancelAppointment(id);
+      try {
+        await api.cancelAppointment(id);
+      } catch {
+        // Local simulation fallback
+        setAppointments((prev) =>
+          prev.map((a) => (a.id === id ? { ...a, status: 'cancelled' as const } : a))
+        );
+      }
+
       addToast({
         type: 'info',
         title: 'Appointment Soft-Cancelled',
@@ -236,7 +311,19 @@ export const Dashboard: React.FC = () => {
   // Patient registration handler
   const handleCreatePatient = async (input: PatientCreateInput) => {
     try {
-      const created = await api.createPatient(input);
+      let created: Patient;
+      try {
+        created = await api.createPatient(input);
+      } catch {
+        created = {
+          id: `pat-${Date.now()}`,
+          name: input.name,
+          age: input.age,
+          contact: input.contact || null,
+          created_at: new Date().toISOString(),
+        };
+        setPatients((prev) => [created, ...prev]);
+      }
       addToast({
         type: 'success',
         title: 'Patient Registered',
@@ -245,7 +332,7 @@ export const Dashboard: React.FC = () => {
       addEvent({
         type: 'system',
         title: 'New Patient Registered',
-        description: `Registered patient ${created.name} (${created.age} yrs) in Supabase database.`,
+        description: `Registered patient ${created.name} (${created.age} yrs) in directory.`,
         status: 'info',
       });
       await loadData();
@@ -262,11 +349,23 @@ export const Dashboard: React.FC = () => {
   // Doctor roster creation handler
   const handleCreateDoctor = async (input: DoctorCreateInput) => {
     try {
-      const created = await api.createDoctor({
-        name: input.name,
-        specialization: input.specialization,
-        is_available: input.is_available ?? true,
-      });
+      let created: Doctor;
+      try {
+        created = await api.createDoctor({
+          name: input.name,
+          specialization: input.specialization,
+          is_available: input.is_available ?? true,
+        });
+      } catch {
+        created = {
+          id: `doc-${Date.now()}`,
+          name: input.name,
+          specialization: input.specialization,
+          is_available: input.is_available ?? true,
+          created_at: new Date().toISOString(),
+        };
+        setDoctors((prev) => [created, ...prev]);
+      }
       addToast({
         type: 'success',
         title: 'Physician Added',
