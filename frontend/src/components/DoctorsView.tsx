@@ -13,7 +13,7 @@ interface DoctorsViewProps {
   loading: boolean;
   onRefresh: () => void;
   onCreateDoctor: (input: DoctorCreateInput) => Promise<void>;
-  onBookWithDoctor: (doctorId: string) => void;
+  onBookWithDoctor?: (doctorId: string) => void;
 }
 
 export const DoctorsView: React.FC<DoctorsViewProps> = ({
@@ -22,7 +22,6 @@ export const DoctorsView: React.FC<DoctorsViewProps> = ({
   loading,
   onRefresh,
   onCreateDoctor,
-  onBookWithDoctor,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAvailable, setFilterAvailable] = useState<boolean | 'all'>('all');
@@ -179,18 +178,6 @@ export const DoctorsView: React.FC<DoctorsViewProps> = ({
                     <Calendar size={13} color="#64748B" />
                     <span>{activeCount} scheduled slot(s)</span>
                   </div>
-                  {doc.is_available ? (
-                    <button
-                      className="btn btn-outline btn-sm"
-                      onClick={() => onBookWithDoctor(doc.id)}
-                    >
-                      Schedule Slot
-                    </button>
-                  ) : (
-                    <span style={{ fontSize: '0.74rem', color: '#94A3B8' }}>
-                      Unavailable
-                    </span>
-                  )}
                 </div>
               </div>
             );
