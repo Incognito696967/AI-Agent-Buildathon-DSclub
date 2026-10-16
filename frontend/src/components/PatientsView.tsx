@@ -14,7 +14,7 @@ interface PatientsViewProps {
   loading: boolean;
   onRefresh: () => void;
   onCreatePatient: (input: PatientCreateInput) => Promise<void>;
-  onBookForPatient: (patientId: string) => void;
+  onBookForPatient?: (patientId: string) => void;
 }
 
 export const PatientsView: React.FC<PatientsViewProps> = ({
@@ -23,7 +23,6 @@ export const PatientsView: React.FC<PatientsViewProps> = ({
   loading,
   onRefresh,
   onCreatePatient,
-  onBookForPatient,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -170,15 +169,6 @@ export const PatientsView: React.FC<PatientsViewProps> = ({
                         : 'No upcoming appointments'}
                     </span>
                   </div>
-                </div>
-
-                <div style={{ marginTop: 'auto', paddingTop: '0.75rem', borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'flex-end' }}>
-                  <button
-                    className="btn btn-outline btn-sm"
-                    onClick={() => onBookForPatient(patient.id)}
-                  >
-                    + Book Slot
-                  </button>
                 </div>
               </div>
             );
