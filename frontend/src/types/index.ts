@@ -55,9 +55,41 @@ export interface DbHealthResponse {
   timestamp: string;
 }
 
+export interface PatientCreateInput {
+  name: string;
+  age: number;
+  contact?: string | null;
+}
+
+export interface DoctorCreateInput {
+  name: string;
+  specialization: string;
+  is_available?: boolean;
+}
+
 export interface DashboardMetrics {
   totalAppointments: number;
   urgentAppointments: number;
   availableDoctors: number;
   pendingAppointments: number;
+}
+
+export type NavTab = 'overview' | 'appointments' | 'patients' | 'doctors' | 'coordination';
+
+export interface CoordinationEvent {
+  id: string;
+  timestamp: string;
+  type: 'booking' | 'cancellation' | 'conflict' | 'system';
+  title: string;
+  description: string;
+  priority?: AppointmentPriority;
+  status?: 'success' | 'warning' | 'danger' | 'info';
+  details?: Record<string, string>;
+}
+
+export interface ToastMessage {
+  id: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  message: string;
+  title?: string;
 }
