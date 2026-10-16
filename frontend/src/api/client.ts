@@ -88,4 +88,28 @@ export const api = {
     request<{ id: string; status: string; message: string }>(`/appointments/${id}/cancel`, {
       method: 'PATCH',
     }),
+
+  // AI Coordination & Triage
+  aiTriage: (symptomsText: string) =>
+    request<{
+      recommended_specialization: string;
+      suggested_priority: 'normal' | 'high' | 'urgent';
+      urgency_rationale: string;
+      suggested_doctors: Doctor[];
+      recommended_slots: string[];
+    }>('/ai/triage', {
+      method: 'POST',
+      body: JSON.stringify({ symptoms_text: symptomsText }),
+    }),
+  aiRecommendSlots: (symptomsText: string) =>
+    request<{
+      recommended_specialization: string;
+      suggested_priority: 'normal' | 'high' | 'urgent';
+      urgency_rationale: string;
+      suggested_doctors: Doctor[];
+      recommended_slots: string[];
+    }>('/ai/recommend-slots', {
+      method: 'POST',
+      body: JSON.stringify({ symptoms_text: symptomsText }),
+    }),
 };

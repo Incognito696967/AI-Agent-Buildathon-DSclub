@@ -8,6 +8,7 @@ import {
   Activity,
   ShieldCheck,
   HeartPulse,
+  Sparkles,
 } from 'lucide-react';
 import type { NavTab } from '../types';
 
@@ -37,6 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     onCloseMobile();
     const pathMap: Record<NavTab, string> = {
       overview: '/',
+      copilot: '/copilot',
       appointments: '/appointments',
       patients: '/patients',
       doctors: '/doctors',
@@ -68,6 +70,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <LayoutDashboard size={18} />
             <span>Overview</span>
+          </button>
+
+          <button
+            className={`nav-item ${currentTab === 'copilot' ? 'active' : ''}`}
+            onClick={() => handleNav('copilot')}
+            style={{
+              background: currentTab === 'copilot' ? 'linear-gradient(135deg, rgba(13,148,136,0.25), rgba(20,45,78,0.3))' : undefined,
+              borderColor: currentTab === 'copilot' ? 'rgba(13,148,136,0.5)' : undefined,
+            }}
+          >
+            <Sparkles size={18} color="#14B8A6" />
+            <span style={{ fontWeight: 600 }}>AI Copilot</span>
+            <span
+              className="badge-count"
+              style={{
+                background: 'linear-gradient(135deg, #0D9488 0%, #14B8A6 100%)',
+                color: '#FFFFFF',
+                fontSize: '0.65rem',
+                padding: '0.1rem 0.4rem',
+              }}
+            >
+              AI
+            </span>
           </button>
 
           <button

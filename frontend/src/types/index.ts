@@ -74,7 +74,7 @@ export interface DashboardMetrics {
   pendingAppointments: number;
 }
 
-export type NavTab = 'overview' | 'appointments' | 'patients' | 'doctors' | 'coordination';
+export type NavTab = 'overview' | 'copilot' | 'appointments' | 'patients' | 'doctors' | 'coordination';
 
 export interface CoordinationEvent {
   id: string;

@@ -26,6 +26,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
 
   const tabTitles: Record<NavTab, string> = {
     overview: 'Operations Overview',
+    copilot: 'AI Scheduling Copilot',
     appointments: 'Appointments Management',
     patients: 'Patient Directory',
     doctors: 'Medical Staff Roster',

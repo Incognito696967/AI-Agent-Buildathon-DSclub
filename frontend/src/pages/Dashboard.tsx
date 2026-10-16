@@ -8,6 +8,7 @@ import { AppointmentsView } from '../components/AppointmentsView';
 import { PatientsView } from '../components/PatientsView';
 import { DoctorsView } from '../components/DoctorsView';
 import { CoordinationActivityView } from '../components/CoordinationActivityView';
+import { AiSchedulingCopilot } from '../components/AiSchedulingCopilot';
 import { BookingModal } from '../components/BookingModal';
 import { ToastContainer } from '../components/ToastContainer';
 import { api } from '../api/client';
@@ -21,6 +22,7 @@ import {
   Calendar,
   AlertTriangle,
   Database,
+  Sparkles,
 } from 'lucide-react';
 import type {
   Appointment,
@@ -45,6 +47,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview' })
   const location = useLocation();
 
   const getTabFromPath = useCallback((path: string): NavTab => {
+    if (path.startsWith('/copilot')) return 'copilot';
     if (path.startsWith('/appointments')) return 'appointments';
     if (path.startsWith('/patients')) return 'patients';
     if (path.startsWith('/doctors')) return 'doctors';
@@ -498,6 +501,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview' })
                 </div>
                 <div className="welcome-actions">
                   <button
+                    className="btn btn-outline"
+                    onClick={() => setCurrentTab('copilot')}
+                    id="btn-overview-copilot"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      borderColor: '#0D9488',
+                      color: '#0F766E',
+                      fontWeight: 600,
+                    }}
+                  >
+                    <Sparkles size={16} color="#0D9488" />
+                    <span>AI Scheduling Copilot</span>
+                  </button>
+                  <button
                     className="btn btn-primary"
                     onClick={openGeneralBooking}
                     id="btn-overview-schedule"
@@ -655,6 +672,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview' })
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* TAB: AI SCHEDULING COPILOT */}
+          {currentTab === 'copilot' && (
+            <div>
+              <AiSchedulingCopilot
+                doctors={doctors}
+                patients={patients}
+                appointments={appointments}
+                onBookAppointment={handleCreateAppointment}
+                onRefreshData={loadData}
+              />
             </div>
           )}
 

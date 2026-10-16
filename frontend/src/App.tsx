@@ -7,6 +7,7 @@ export function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Dashboard initialTab="overview" />} />
+        <Route path="/copilot" element={<Dashboard initialTab="copilot" />} />
         <Route path="/appointments" element={<Dashboard initialTab="appointments" />} />
         <Route path="/patients" element={<Dashboard initialTab="patients" />} />
         <Route path="/doctors" element={<Dashboard initialTab="doctors" />} />

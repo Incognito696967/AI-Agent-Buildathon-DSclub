@@ -1523,3 +1523,578 @@ button, input, select, textarea {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==============================================================================
+   AI Scheduling Copilot Styles
+   ============================================================================== */
+.copilot-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.copilot-header-card {
+  background: linear-gradient(135deg, #142D4E 0%, #1F3E68 100%);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow-md);
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.copilot-header-info {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+}
+
+.copilot-badge-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #0D9488 0%, #14B8A6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.4);
+  flex-shrink: 0;
+}
+
+.copilot-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.copilot-title-row h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: -0.01em;
+}
+
+.copilot-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(13, 148, 136, 0.25);
+  color: #5EEAD4;
+  border: 1px solid rgba(20, 184, 166, 0.4);
+}
+
+.copilot-subtitle {
+  font-size: 0.84rem;
+  color: #CBD5E1;
+  max-width: 620px;
+  line-height: 1.45;
+}
+
+.copilot-patient-context {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  min-width: 240px;
+}
+
+.copilot-patient-label {
+  font-size: 0.75rem;
+  color: #94A3B8;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.copilot-patient-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.copilot-patient-select {
+  width: 100%;
+  padding: 0.45rem 1.8rem 0.45rem 0.65rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #142D4E;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: var(--radius-sm);
+  appearance: none;
+  cursor: pointer;
+}
+
+.select-arrow-icon {
+  position: absolute;
+  right: 0.65rem;
+  pointer-events: none;
+  color: #64748B;
+}
+
+/* Chat Surface */
+.copilot-chat-surface {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  min-height: 580px;
+  max-height: calc(100vh - 240px);
+  position: relative;
+  overflow: hidden;
+}
+
+.copilot-messages-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: #FAFBFC;
+}
+
+.copilot-bubble-wrap {
+  display: flex;
+  gap: 0.75rem;
+  max-width: 82%;
+}
+
+.copilot-bubble-wrap.user-align {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.copilot-bubble-wrap.assistant-align {
+  align-self: flex-start;
+}
+
+.copilot-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0D9488 0%, #14B8A6 100%);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(13, 148, 136, 0.25);
+}
+
+.copilot-avatar.emergency-avatar {
+  background: #DC2626;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+}
+
+.copilot-bubble {
+  border-radius: var(--radius-md);
+  padding: 1rem 1.15rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.user-bubble {
+  background: var(--navy);
+  color: #FFFFFF;
+  border-bottom-right-radius: 2px;
+}
+
+.assistant-bubble {
+  background: #FFFFFF;
+  color: var(--text-primary);
+  border: 1px solid #E2E8F0;
+  border-bottom-left-radius: 2px;
+}
+
+.emergency-bubble {
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1.5px solid #F87171;
+  border-bottom-left-radius: 2px;
+}
+
+.copilot-bubble-timestamp {
+  font-size: 0.7rem;
+  color: #94A3B8;
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+.user-bubble .copilot-bubble-timestamp {
+  color: #94A3B8;
+}
+
+.copilot-thinking-bubble {
+  background: #F0FDF8;
+  border: 1px solid #CCFBF1;
+  border-radius: var(--radius-md);
+  padding: 0.65rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.spinning-icon {
+  animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Recommendations Grid inside Chat */
+.copilot-recommendations-list {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.recommendations-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #142D4E;
+}
+
+.recommendation-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.85rem;
+}
+
+.copilot-rec-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.copilot-rec-card:hover {
+  border-color: #0D9488;
+  box-shadow: 0 4px 10px rgba(13, 148, 136, 0.12);
+  transform: translateY(-2px);
+}
+
+.rec-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rec-rank-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0F766E;
+  background: #CCFBF1;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.rec-doctor-info h4 {
+  font-size: 0.94rem;
+  color: #142D4E;
+  font-weight: 700;
+}
+
+.rec-specialty {
+  font-size: 0.78rem;
+  color: #0D9488;
+  font-weight: 600;
+}
+
+.rec-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #F8FAFC;
+  padding: 0.35rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: #334155;
+  border: 1px solid #EDF2F7;
+}
+
+.rec-rationale {
+  font-size: 0.77rem;
+  color: #64748B;
+  line-height: 1.4;
+  margin-top: 0.2rem;
+}
+
+/* Confirmed Card */
+.copilot-confirmed-card {
+  margin-top: 0.85rem;
+  background: #F0FDF8;
+  border: 1.5px solid #0D9488;
+  border-radius: var(--radius-md);
+  padding: 1rem;
+}
+
+.confirmed-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.88rem;
+  color: #0F766E;
+}
+
+.confirmed-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem;
+  font-size: 0.82rem;
+}
+
+.confirmed-label {
+  display: block;
+  font-size: 0.72rem;
+  color: #64748B;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.confirmed-val {
+  font-weight: 600;
+  color: #142D4E;
+}
+
+/* Clarification Options */
+.copilot-options-wrap {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.copilot-chip-btn {
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  color: #334155;
+  font-size: 0.78rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.copilot-chip-btn:hover {
+  background: #E2E8F0;
+  border-color: #94A3B8;
+  color: #0F172A;
+}
+
+/* Suggested Queries Bar */
+.copilot-suggested-queries-bar {
+  padding: 0.65rem 1.25rem;
+  background: #F1F5F9;
+  border-top: 1px solid #E2E8F0;
+  overflow-x: auto;
+}
+
+.chips-scroll {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.chips-intro {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #64748B;
+  flex-shrink: 0;
+}
+
+.copilot-suggestion-chip {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 9999px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.76rem;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.copilot-suggestion-chip:hover {
+  border-color: #0D9488;
+  color: #0D9488;
+  background: #F0FDF8;
+}
+
+/* Input Form */
+.copilot-input-bar {
+  padding: 1rem 1.25rem;
+  background: #FFFFFF;
+  border-top: 1px solid #E2E8F0;
+}
+
+.copilot-input-form {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.copilot-text-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  border: 1.5px solid #CBD5E1;
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.copilot-text-input:focus {
+  border-color: #0D9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+}
+
+.copilot-send-btn {
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Confirm Dialog Overlay */
+.copilot-confirm-dialog {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.confirm-dialog-content {
+  background: #FFFFFF;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-modal);
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.confirm-dialog-header {
+  padding: 1.15rem 1.5rem;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.confirm-dialog-header h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #142D4E;
+}
+
+.confirm-dialog-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.confirm-summary-box {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.confirm-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.84rem;
+}
+
+.row-label {
+  color: #64748B;
+  font-weight: 500;
+}
+
+.row-value {
+  color: #142D4E;
+  font-weight: 700;
+}
+
+.gist-guarantee-note {
+  margin-top: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.77rem;
+  color: #0F766E;
+  background: #F0FDF8;
+  padding: 0.65rem 0.85rem;
+  border-radius: 6px;
+  border: 1px solid #CCFBF1;
+}
+
+.confirm-dialog-footer {
+  padding: 1rem 1.5rem;
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .copilot-header-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .copilot-patient-context {
+    width: 100%;
+  }
+  .copilot-bubble-wrap {
+    max-width: 95%;
+  }
+  .recommendation-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .confirmed-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
